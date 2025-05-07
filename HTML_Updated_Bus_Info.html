@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+    body {
+      font-family: Helvetica, sans-serif;
+    }
+
+    h1 {font-size: 40px;}
+  </style>
+  <meta charset="UTF-8">
+  <title>Upcoming B57 Bus</title>
+</head>
+<body>
+  <h1>Next B57 Bus to Maspeth Fresh Pond Road!</h1>
+  <div id="bus-info">Loading...</div>
+
+
+<script>
+  async function loadBusData() {
+    try {
+      const response = await fetch('bus_data.json');
+      const data = await response.json();
+
+      const visits = data?.Siri?.ServiceDelivery?.StopMonitoringDelivery?.[0]?.MonitoredStopVisit || [];
+      const container = document.getElementById('bus-info');
+      container.innerHTML = '';
+
+      if (visits.length === 0) {
+        container.textContent = 'No buses found.';
+        return;
+      }
+
+      // Show only the next 2 buses
+      visits.slice(0, 2).forEach(visit => {
+        const journey = visit.MonitoredVehicleJourney;
+        const arrival = journey.MonitoredCall?.ExpectedArrivalTime;
+        const distance = journey.MonitoredCall?.Extensions?.Distances?.PresentableDistance;
+        const line = journey.PublishedLineName;
+        const destination = journey.DestinationName;
+
+        const item = document.createElement('p');
+        item.textContent = `Bus ${line} to ${destination}: ${distance}. Arriving at ${new Date(arrival).toLocaleTimeString()}`;
+        container.appendChild(item);
+      });
+
+    } catch (err) {
+      document.getElementById('bus-info').textContent = 'Could not load bus data.';
+      console.error(err);
+    }
+  }
+
+  setInterval(loadBusData, 5000); // Refresh every 5 seconds
+  loadBusData();
+</script>
